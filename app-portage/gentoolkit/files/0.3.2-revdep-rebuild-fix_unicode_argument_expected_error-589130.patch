@@ -1,0 +1,46 @@
+ pym/gentoolkit/revdep_rebuild/cache.py   | 7 +++++--
+ pym/gentoolkit/revdep_rebuild/collect.py | 2 +-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/pym/gentoolkit/revdep_rebuild/cache.py b/pym/gentoolkit/revdep_rebuild/cache.py
+index 7359d05..5582e85 100644
+--- a/pym/gentoolkit/revdep_rebuild/cache.py
++++ b/pym/gentoolkit/revdep_rebuild/cache.py
+@@ -5,11 +5,14 @@ Functions for reading, saving and verifying the data caches
+ 
+ from __future__ import print_function
+ 
+-import os
++from portage import os
+ import time
+ import sys
+ if sys.hexversion < 0x3000000:
+ 	from io import open
++        _unicode = unicode
++else:
++        _unicode = str
+ 
+ from portage import _encodings, _unicode_decode, _unicode_encode
+ from portage.output import red
+@@ -59,7 +62,7 @@ def save_cache(logger, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
+ 	try:
+ 		_file = open(_unicode_encode(os.path.join(temp_path, 'timestamp'),
+ 			encoding=_encodings['fs']), mode='w', encoding=_encodings['content'])
+-		_file.write(str(int(time.time())))
++		_file.write(_unicode(int(time.time())))
+ 		_file.close()
+ 
+ 		for key,val in to_save.items():
+diff --git a/pym/gentoolkit/revdep_rebuild/collect.py b/pym/gentoolkit/revdep_rebuild/collect.py
+index ab3ef97..82cec7b 100644
+--- a/pym/gentoolkit/revdep_rebuild/collect.py
++++ b/pym/gentoolkit/revdep_rebuild/collect.py
+@@ -5,7 +5,7 @@
+ from __future__ import print_function
+ 
+ import re
+-import os
++from portage import os
+ import glob
+ import stat
+ import sys
