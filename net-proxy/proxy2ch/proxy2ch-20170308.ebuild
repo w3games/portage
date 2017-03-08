@@ -1,6 +1,5 @@
-# Copyright 1999-2016 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Id$
 
 EAPI=6
 inherit eutils
@@ -10,7 +9,7 @@ HOMEPAGE="http://xiwayy2kn32bo3ko.onion.link/test/read.cgi/tor/1424667677/
 SRC_URI="http://xiwayy2kn32bo3ko.onion.link/test/download.cgi?board=tor&id=2016042421234907443&filetype=.zip -> ${P}.zip"
 SLOT="0"
 KEYWORDS="~x86 ~amd64"
-S=${WORKDIR}/${PN}-20160424
+S=${WORKDIR}/${PN}-20160308
 
 src_prepare() {
 	eapply "${FILESDIR}/proxy2ch-20140424.patch"
