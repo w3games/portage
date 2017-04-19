@@ -1,53 +1,64 @@
-# Copyright 1999-2006 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: $
 
-inherit eutils autotools subversion
+EAPI=5
+inherit eutils autotools autotools-utils flag-o-matic git-r3
+
+MY_P="${P/_p/-}"
+MY_P="${MY_P/_/-}"
 
 DESCRIPTION="gtk2 based 2ch browser written in C++"
-HOMEPAGE="http://sourceforge.jp/projects/jd4linux"
-SRC_URI=""
+HOMEPAGE="http://jd4linux.sourceforge.jp/"
 
-ESVN_REPO_URI="http://svn.sourceforge.jp/svnroot/jd4linux/jd/trunk"
-ESVN_PROJECT="${PN}"
+# SRC_URI="mirror://sourceforge.jp/jd4linux/62877/${MY_P}.tgz
+#	 http://xiwayy2kn32bo3ko.onion.link/test/download.cgi?board=tor&id=2017031216432606093&filetype=.xz -> ${PF}.patch.xz"
+
+EGIT_REPO_URI="https://github.com/yama-natuki/JD/"
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="~x86 ~amd64"
-IUSE="pango gnome" # migemo"
+KEYWORDS="~amd64 ~x86"
+IUSE="alsa gnome gnutls migemo"
 
-RDEPEND=">=dev-cpp/gtkmm-2.6
-    >=dev-cpp/glibmm-2.6
-    >=dev-libs/libsigc++-2.0
-    >=dev-libs/openssl-0.9.7
-     gnome? ( >=dev-cpp/libgnomeuimm-2.0.0 )"
-#    migemo? ( app-text/cmigemo )"
-DEPEND="${RDEPEND}"
+RDEPEND="dev-cpp/gtkmm:2.4
+	dev-libs/glib:2
+	x11-misc/xdg-utils
+	alsa? ( >=media-libs/alsa-lib-1 )
+	gnome? ( >=gnome-base/libgnomeui-2 )
+	!gnome? (
+		x11-libs/libSM
+		x11-libs/libICE
+	)
+	gnutls? ( >=net-libs/gnutls-1.2 )
+	!gnutls? ( >=dev-libs/openssl-0.9 )
+	migemo? ( app-text/cmigemo )"
 
-S="${WORKDIR}/${PN}"
+DEPEND="${RDEPEND}
+	virtual/pkgconfig"
 
-src_unpack() {
-    subversion_fetch || die
+S="${WORKDIR}/${MY_P}"
 
-    # replacement of subversion_bootstrap
-    cd ${S}
-    eautoreconf || die
-    sed -i -e '/^CXXFLAGS/s:-ggdb::' configure || die "sed failed"
-}
+AUTOTOOLS_AUTORECONF=1
 
-src_compile() {
-    local myconf
-    use pango && myconf="--with-pangolayout"
-    use gnome && myconf="${myconf} --with-sessionlib=gnomeui"
-    #use migemo && myconf="${myconf} --with-migemo"
+# PATCHES=( "${WORKDIR}/${PF}.patch" )
 
-    ./configure --prefix=/usr ${myconf} || die
-    emake || die
+src_configure() {
+	# use gnomeui sm instead of Xorg SM/ICE
+	local myeconfargs=(
+		--with-xdgopen
+		$(use_with gnome sessionlib gnomeui)
+		$(use_with !gnome sessionlib xsmp)
+		$(use_with alsa)
+		$(use_with !gnutls openssl)
+		$(use_with migemo)
+		$(use_with migemo migemodict /usr/share/migemo/migemo-dict)
+	)
+	autotools-utils_src_configure
 }
 
 src_install() {
-    make DESTDIR="${D}" install || die "make install failed"
-    doicon ${PN}.png
-    domenu ${PN}.desktop
-    dodoc COPYING README ChangeLog INSTALL
+	autotools-utils_src_install
+	doicon ${PN}.png
+	domenu ${PN}.desktop
+	#dodoc AUTHORS ChangeLog NEWS README
 }
