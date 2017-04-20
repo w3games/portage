@@ -14,6 +14,7 @@ HOMEPAGE="http://jd4linux.sourceforge.jp/"
 #	 http://xiwayy2kn32bo3ko.onion.link/test/download.cgi?board=tor&id=2017031216432606093&filetype=.xz -> ${PF}.patch.xz"
 
 EGIT_REPO_URI="https://github.com/yama-natuki/JD/"
+EGIT_BRANCH="test"
 
 LICENSE="GPL-2"
 SLOT="0"
