@@ -1,6 +1,5 @@
-# Copyright 1999-2015 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Id$
 
 EAPI="6"
 
@@ -9,6 +8,7 @@ inherit eutils git-r3
 DESCRIPTION="A mouse friendly tiling window manager"
 HOMEPAGE="http://www.hzog.net/index.php/Main_Page"
 EGIT_REPO_URI="https://github.com/gschwind/${PN}/"
+EGIT_BRANCH="next"
 
 LICENSE="GPL-3"
 SLOT="0"
@@ -39,7 +39,7 @@ DEPEND="${RDEPEND}
 	!dev-tcltk/tcllib"
 
 src_prepare() {
-	eapply ${FILESDIR}/${PN}.patch	
+	eapply ${FILESDIR}/${PN}.patch
 	eapply_user
 	sh ./build_package_sources.sh
 }
