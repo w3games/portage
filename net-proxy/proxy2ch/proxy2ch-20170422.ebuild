@@ -12,7 +12,7 @@ KEYWORDS="~x86 ~amd64"
 S=${WORKDIR}/${PN}-${PVR}
 
 src_prepare() {
-	eapply "${FILESDIR}/proxy2ch-20140424.patch"
+	# eapply "${FILESDIR}/proxy2ch-20140424.patch"
 	eapply_user
 }
 src_install() {
