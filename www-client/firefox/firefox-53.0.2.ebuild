@@ -25,7 +25,7 @@ if [[ ${MOZ_ESR} == 1 ]]; then
 fi
 
 # Patch version
-PATCH="${PN}-52.0-patches-08"
+PATCH="${PN}-53.0-patches-02"
 MOZ_HTTP_URI="https://archive.mozilla.org/pub/${PN}/releases"
 
 MOZCONFIG_OPTIONAL_GTK2ONLY=1
@@ -40,7 +40,7 @@ KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-lin
 
 SLOT="0"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
-IUSE="bindist +gmp-autoupdate hardened hwaccel jack nsplugin pgo rust selinux test"
+IUSE="bindist +gmp-autoupdate hardened hwaccel jack pgo rust selinux test"
 RESTRICT="!bindist? ( bindist )"
 
 PATCH_URIS=( https://dev.gentoo.org/~{anarchy,axs,polynomial-c}/mozilla/patchsets/${PATCH}.tar.xz )
@@ -52,9 +52,14 @@ ASM_DEPEND=">=dev-lang/yasm-1.1"
 
 RDEPEND="
 	jack? ( virtual/jack )
-	>=dev-libs/nss-3.28.3
+	>=dev-libs/nss-3.29.5
 	>=dev-libs/nspr-4.13.1
 	selinux? ( sec-policy/selinux-mozilla )"
+
+# atoms in mozconfig that need to be newer than what is inherited
+RDEPEND+="
+	>=media-libs/libpng-1.6.28
+"
 
 DEPEND="${RDEPEND}
 	pgo? ( >=sys-devel/gcc-4.5 )
@@ -126,6 +131,7 @@ src_unpack() {
 src_prepare() {
 	# Apply our patches
 	eapply "${WORKDIR}/firefox"
+	eapply "${FILESDIR}"/musl_drop_hunspell_alloc_hooks.patch
 
 	# Enable gnomebreakpad
 	if use debug ; then
@@ -237,7 +243,7 @@ src_configure() {
 	fi
 
 	# workaround for funky/broken upstream configure...
-	SHELL="${SHELL:-${EPREFIX%/}/bin/bash}" \
+	SHELL="${SHELL:-${EPREFIX}/bin/bash}" \
 	emake -f client.mk configure
 }
 
@@ -263,10 +269,10 @@ src_compile() {
 		shopt -u nullglob
 		[[ -n "${cards}" ]] && addpredict "${cards}"
 
-		MOZ_MAKE_FLAGS="${MAKEOPTS}" SHELL="${SHELL:-${EPREFIX%/}/bin/bash}" \
+		MOZ_MAKE_FLAGS="${MAKEOPTS}" SHELL="${SHELL:-${EPREFIX}/bin/bash}" \
 		virtx emake -f client.mk profiledbuild || die "virtx emake failed"
 	else
-		MOZ_MAKE_FLAGS="${MAKEOPTS}" SHELL="${SHELL:-${EPREFIX%/}/bin/bash}" \
+		MOZ_MAKE_FLAGS="${MAKEOPTS}" SHELL="${SHELL:-${EPREFIX}/bin/bash}" \
 		emake -f client.mk realbuild
 	fi
 
@@ -297,12 +303,6 @@ src_install() {
 		"${BUILD_OBJ_DIR}/dist/bin/browser/defaults/preferences/all-gentoo.js" \
 		|| die
 
-	if use nsplugin; then
-		echo "pref(\"plugin.load_flash_only\", false);" >> \
-			"${BUILD_OBJ_DIR}/dist/bin/browser/defaults/preferences/all-gentoo.js" \
-			|| die
-	fi
-
 	local plugin
 	use gmp-autoupdate || for plugin in "${GMP_PLUGIN_LIST[@]}" ; do
 		echo "pref(\"media.${plugin}.autoupdate\", false);" >> \
@@ -310,7 +310,7 @@ src_install() {
 			|| die
 	done
 
-	MOZ_MAKE_FLAGS="${MAKEOPTS}" SHELL="${SHELL:-${EPREFIX%/}/bin/bash}" \
+	MOZ_MAKE_FLAGS="${MAKEOPTS}" SHELL="${SHELL:-${EPREFIX}/bin/bash}" \
 	emake DESTDIR="${D}" install
 
 	# Install language packs
@@ -369,6 +369,22 @@ PROFILE_EOF
 
 pkg_preinst() {
 	gnome2_icon_savelist
+
+	# if the apulse libs are available in MOZILLA_FIVE_HOME then apulse
+	# doesn't need to be forced into the LD_LIBRARY_PATH
+	if use pulseaudio && [ -d "${EPREFIX}"/usr/$(get_libdir)/apulse ] ; then
+		einfo "APULSE found - Generating library symlinks for sound support"
+		local lib
+		pushd "${ED}"${MOZILLA_FIVE_HOME} &>/dev/null || die
+		for lib in "${EPREFIX}"/usr/$(get_libdir)/apulse/libpulse* ; do
+			# a quickpkg rolled by hand will grab symlinks as part of the package,
+			# so we need to avoid creating them if they already exist.
+			if ! [ -L ${lib##*/} ]; then
+				ln -s "${lib}" || die
+			fi
+		done
+		popd &>/dev/null || die
+	fi
 }
 
 pkg_postinst() {
@@ -381,6 +397,12 @@ pkg_postinst() {
 		elog "installing into new profiles:"
 		local plugin
 		for plugin in "${GMP_PLUGIN_LIST[@]}"; do elog "\t ${plugin}" ; done
+	fi
+
+	if use pulseaudio && [ -d "${EPREFIX}"/usr/$(get_libdir)/apulse ]; then
+		elog "Apulse was detected at merge time on this system and so it will always be"
+		elog "used for sound.  If you wish to use pulseaudio instead please unmerge"
+		elog "media-sound/apulse."
 	fi
 }
 
