@@ -7,12 +7,11 @@ WANT_AUTOCONF="2.1"
 MOZ_ESR=""
 
 # This list can be updated with scripts/get_langs.sh from the mozilla overlay
-MOZ_LANGS=( en-US ja )
-# ach af an ar as ast az bg bn-BD bn-IN br bs ca cak cs cy da de dsb
-# el en en-GB en-US en-ZA eo es-AR es-CL es-ES es-MX et eu fa ff fi fr fy-NL ga-IE
-# gd gl gn gu-IN he hi-IN hr hsb hu hy-AM id is it ja ka kab kk km kn ko lij lt lv
-# mai mk ml mr ms nb-NO nl nn-NO or pa-IN pl pt-BR pt-PT rm ro ru si sk sl son sq
-# sr sv-SE ta te th tr uk uz vi xh zh-CN zh-TW )
+MOZ_LANGS=( ach af an ar as ast az bg bn-BD bn-IN br bs ca cak cs cy da de dsb
+el en en-GB en-US en-ZA eo es-AR es-CL es-ES es-MX et eu fa ff fi fr fy-NL ga-IE
+gd gl gn gu-IN he hi-IN hr hsb hu hy-AM id is it ja ka kab kk km kn ko lij lt lv
+mai mk ml mr ms nb-NO nl nn-NO or pa-IN pl pt-BR pt-PT rm ro ru si sk sl son sq
+sr sv-SE ta te th tr uk uz vi xh zh-CN zh-TW )
 
 # Convert the ebuild version to the upstream mozilla version, used by mozlinguas
 MOZ_PV="${PV/_alpha/a}" # Handle alpha for SRC_URI
@@ -39,7 +38,7 @@ KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 ~x86 ~amd64-linux ~x86-lin
 
 SLOT="0"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
-IUSE="bindist +gmp-autoupdate hardened hwaccel jack nsplugin pgo rust selinux test"
+IUSE="bindist +gmp-autoupdate hardened hwaccel jack nsplugin pgo selinux test"
 RESTRICT="!bindist? ( bindist )"
 
 PATCH_URIS=( https://dev.gentoo.org/~{anarchy,axs,polynomial-c}/mozilla/patchsets/${PATCH}.tar.xz )
@@ -51,13 +50,13 @@ ASM_DEPEND=">=dev-lang/yasm-1.1"
 
 RDEPEND="
 	jack? ( virtual/jack )
-	>=dev-libs/nss-3.29.5
-	>=dev-libs/nspr-4.13.1
+	>=dev-libs/nss-3.30.2
+	>=dev-libs/nspr-4.14
 	selinux? ( sec-policy/selinux-mozilla )"
 
 DEPEND="${RDEPEND}
 	pgo? ( >=sys-devel/gcc-4.5 )
-	rust? ( dev-lang/rust )
+	>=dev-lang/rust-1.15.1
 	amd64? ( ${ASM_DEPEND} virtual/opengl )
 	x86? ( ${ASM_DEPEND} virtual/opengl )"
 
@@ -98,11 +97,6 @@ pkg_setup() {
 		ewarn "You will do a double build for profile guided optimization."
 		ewarn "This will result in your build taking at least twice as long as before."
 	fi
-
-	if use rust; then
-		einfo
-		ewarn "This is very experimental, should only be used by those developing firefox."
-	fi
 }
 
 pkg_pretend() {
@@ -125,7 +119,6 @@ src_unpack() {
 src_prepare() {
 	# Apply our patches
 	eapply "${WORKDIR}/firefox"
-	eapply "${FILESDIR}"/musl_drop_hunspell_alloc_hooks.patch
 
 	# Enable gnomebreakpad
 	if use debug ; then
@@ -219,8 +212,6 @@ src_configure() {
 
 	mozconfig_annotate '' --enable-extensions="${MEXTENSIONS}"
 
-	mozconfig_use_enable rust
-
 	# Allow for a proper pgo build
 	if use pgo; then
 		echo "mk_add_options PROFILE_GEN_SCRIPT='EXTRA_TEST_ARGS=10 \$(MAKE) -C \$(MOZ_OBJDIR) pgo-profile-run'" >> "${S}"/.mozconfig
@@ -231,10 +222,6 @@ src_configure() {
 
 	# Finalize and report settings
 	mozconfig_final
-
-	if [[ $(gcc-major-version) -lt 4 ]]; then
-		append-cxxflags -fno-stack-protector
-	fi
 
 	# workaround for funky/broken upstream configure...
 	SHELL="${SHELL:-${EPREFIX}/bin/bash}" \
