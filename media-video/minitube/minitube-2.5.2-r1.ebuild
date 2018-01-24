@@ -26,8 +26,8 @@ DEPEND="dev-qt/qtgui:5[accessibility]
 	dev-qt/qtsql:5[sqlite]
 	dev-qt/qtwidgets:5
 	dev-qt/qtsingleapplication[qt5(+),X]
-	media-libs/phonon[qt5]
-	dev-qt/linguist-tools
+	dev-qt/linguist-tools:5
+	media-libs/phonon[qt5(+)]
 "
 RDEPEND="${DEPEND}"
 
