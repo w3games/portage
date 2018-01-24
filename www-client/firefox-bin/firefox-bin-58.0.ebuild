@@ -5,7 +5,7 @@ EAPI=6
 
 # Can be updated using scripts/get_langs.sh from mozilla overlay
 # Missing when bumped : be
-MOZ_LANGS=( en-US ja )
+MOZ_LANGS=( en-US )
 
 # Convert the ebuild version to the upstream mozilla version, used by mozlinguas
 MOZ_PV="${PV/_beta/b}" # Handle beta for SRC_URI
