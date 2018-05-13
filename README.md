@@ -1,1 +1,1 @@
-# funtoo portage - local_overlay
+# funtoo portage - local
