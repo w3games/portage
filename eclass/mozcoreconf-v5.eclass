@@ -87,7 +87,7 @@ moz_pkgsetup() {
 	# Ensure we use correct toolchain
 	export HOST_CC="$(tc-getBUILD_CC)"
 	export HOST_CXX="$(tc-getBUILD_CXX)"
-	tc-export CC CXX LD PKG_CONFIG
+	tc-export CC CXX LD PKG_CONFIG AR RANLIB
 
 	# Ensure that we have a sane build enviroment
 	export MOZILLA_CLIENT=1
@@ -96,7 +96,7 @@ moz_pkgsetup() {
 	export USE_PTHREADS=1
 	export ALDFLAGS=${LDFLAGS}
 	# ensure MOZCONFIG is not defined
-	eval unset MOZCONFIG
+	unset MOZCONFIG
 
 	# set MOZILLA_FIVE_HOME
 	export MOZILLA_FIVE_HOME="/usr/$(get_libdir)/${PN}"
@@ -217,9 +217,6 @@ mozconfig_init() {
 	if [[ $(gcc-major-version) -ge 6 ]]; then
 		append-cxxflags -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-schedule-insns2
 	fi
-
-	# Go a little faster; use less RAM
-	append-flags "$MAKEEDIT_FLAGS"
 
 	# Use the MOZILLA_FIVE_HOME for the rpath
 	append-ldflags -Wl,-rpath="${MOZILLA_FIVE_HOME}",--enable-new-dtags
