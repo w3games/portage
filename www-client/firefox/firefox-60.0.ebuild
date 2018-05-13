@@ -118,7 +118,6 @@ src_unpack() {
 
 src_prepare() {
 	eapply "${WORKDIR}/firefox"
-	eapply "${FILESDIR}"/${PN}-ffmpeg4.patch
 
 	# Enable gnomebreakpad
 	if use debug ; then
