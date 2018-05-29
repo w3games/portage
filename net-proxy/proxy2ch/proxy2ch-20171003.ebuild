@@ -6,13 +6,12 @@ inherit eutils
 DESCRIPTION="a proxy tool that corresponds the new specification changes of 2ch (data abolition, attrition acquired by API)"
 HOMEPAGE="http://xiwayy2kn32bo3ko.onion.link/test/read.cgi/tor/1424667677/
 	  http://prokusi.wiki.fc2.com/wiki/${PN}"
-SRC_URI="http://xiwayy2kn32bo3ko.onion.link/test/download.cgi?board=tor&id=2016042421234907443&filetype=.zip -> ${P}.zip"
+SRC_URI="https://danwin1210.me/uploads/10-2017/proxy2ch-20171003r.zip -> ${P}.zip"
 SLOT="0"
 KEYWORDS="~x86 ~amd64"
 S=${WORKDIR}/${PN}-${PVR}
 
 src_prepare() {
-	eapply "${FILESDIR}/proxy2ch-20140424.patch"
 	eapply_user
 }
 src_install() {
