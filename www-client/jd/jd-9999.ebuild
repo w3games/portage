@@ -37,7 +37,7 @@ RDEPEND="dev-cpp/gtkmm:2.4
 DEPEND="${RDEPEND}
 	virtual/pkgconfig"
 
-S="${WORKDIR}/${MY_P}"
+S="${WORKDIR}/${PF}"
 
 AUTOTOOLS_AUTORECONF=1
 

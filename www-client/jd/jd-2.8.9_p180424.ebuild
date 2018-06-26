@@ -3,16 +3,17 @@
 # $Header: /var/cvsroot/gentoo-x86/www-client/jd/jd-2.8.5_p120826.ebuild,v 1.2 2014/07/14 00:15:14 hasufell Exp $
 
 EAPI=5
-inherit eutils autotools autotools-utils flag-o-matic
+inherit eutils autotools autotools-utils
 
 MY_P="${P/_p/-}"
 MY_P="${MY_P/_/-}"
 
 DESCRIPTION="gtk2 based 2ch browser written in C++"
-HOMEPAGE="http://jd4linux.sourceforge.jp/"
-
-SRC_URI="mirror://sourceforge.jp/jd4linux/62877/${MY_P}.tgz
-	 http://xiwayy2kn32bo3ko.onion.link/test/download.cgi?board=tor&id=2016042812082118457&filetype=.zip -> ${PF}.patch.zip"
+HOMEPAGE="https://github.com/yama-natuki/JD
+		http://jd4linux.sourceforge.jp/"
+SRC_URI="https://github.com/yama-natuki/JD/archive/${MY_P}.tar.gz"
+# EGIT_REPO_URI="https://github.com/yama-natuki/${PN}"
+# EGIT_BRANCH="test"
 
 LICENSE="GPL-2"
 SLOT="0"
@@ -35,11 +36,9 @@ RDEPEND="dev-cpp/gtkmm:2.4
 DEPEND="${RDEPEND}
 	virtual/pkgconfig"
 
-S="${WORKDIR}/${MY_P}"
+S="${WORKDIR}/JD-${MY_P}"
 
 AUTOTOOLS_AUTORECONF=1
-
-PATCHES=( "${WORKDIR}/${PF}.patch" )
 
 src_configure() {
 	# use gnomeui sm instead of Xorg SM/ICE
