@@ -11,7 +11,7 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 
 RDEPEND="
-	x11-proto/xcb-proto
+	x11-base/xcb-proto
 	x11-libs/libxcb
 	x11-libs/xcb-util
 	x11-libs/libXfixes
