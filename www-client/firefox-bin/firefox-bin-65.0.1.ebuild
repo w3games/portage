@@ -1,11 +1,17 @@
-# Copyright 1999-2017 Gentoo Foundation
+# Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
+MOZ_ESR=0
 
 # Can be updated using scripts/get_langs.sh from mozilla overlay
 # Missing when bumped : be
-MOZ_LANGS=( en-US )
+MOZ_LANGS=( en-US ja )
+# ach af an ar as ast az bg bn-BD bn-IN br bs ca cs cy da de
+# el en en-GB en-US en-ZA eo es-AR es-CL es-ES es-MX et eu fa fi fr fy-NL
+# ga-IE gd gl gu-IN he hi-IN hr hsb hu hy-AM id is it ja kk km kn ko lt
+# lv mai mk ml mr ms nb-NO nl nn-NO or pa-IN pl pt-BR pt-PT rm ro ru si sk sl
+# son sq sr sv-SE ta te th tr uk uz vi xh zh-CN zh-TW )
 
 # Convert the ebuild version to the upstream mozilla version, used by mozlinguas
 MOZ_PV="${PV/_beta/b}" # Handle beta for SRC_URI
@@ -17,7 +23,7 @@ if [[ ${MOZ_ESR} == 1 ]]; then
 fi
 MOZ_P="${MOZ_PN}-${MOZ_PV}"
 
-MOZ_HTTP_URI="http://archive.mozilla.org/pub/mozilla.org/${MOZ_PN}/releases/"
+MOZ_HTTP_URI="https://archive.mozilla.org/pub/mozilla.org/${MOZ_PN}/releases/"
 
 inherit eutils pax-utils xdg-utils gnome2-utils mozlinguas-v2 nsplugins
 
@@ -25,10 +31,10 @@ DESCRIPTION="Firefox Web Browser"
 SRC_URI="${SRC_URI}
 	amd64? ( ${MOZ_HTTP_URI%/}/${MOZ_PV}/linux-x86_64/en-US/${MOZ_P}.tar.bz2 -> ${PN}_x86_64-${PV}.tar.bz2 )
 	x86? ( ${MOZ_HTTP_URI%/}/${MOZ_PV}/linux-i686/en-US/${MOZ_P}.tar.bz2 -> ${PN}_i686-${PV}.tar.bz2 )"
-HOMEPAGE="http://www.mozilla.com/firefox"
+HOMEPAGE="https://www.mozilla.org/en-US/firefox/"
 RESTRICT="strip mirror"
 
-KEYWORDS="-* ~amd64 ~x86"
+KEYWORDS="-* amd64 x86"
 SLOT="0"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
 IUSE="+ffmpeg +pulseaudio selinux startup-notification"
@@ -68,6 +74,8 @@ QA_PREBUILT="
 	opt/${MOZ_PN}/plugin-container
 	opt/${MOZ_PN}/mozilla-xremote-client
 	opt/${MOZ_PN}/updater
+	opt/${MOZ_PN}/minidump-analyzer
+	opt/${MOZ_PN}/pingsender
 "
 
 S="${WORKDIR}/${MOZ_PN}"
@@ -83,7 +91,7 @@ src_install() {
 	declare MOZILLA_FIVE_HOME=/opt/${MOZ_PN}
 
 	local size sizes icon_path icon name
-	sizes="16 32 48"
+	sizes="16 32 48 128"
 	icon_path="${S}/browser/chrome/icons/default"
 	icon="${PN}"
 	name="Mozilla Firefox"
@@ -93,9 +101,6 @@ src_install() {
 		insinto "/usr/share/icons/hicolor/${size}x${size}/apps"
 		newins "${icon_path}/default${size}.png" "${icon}.png" || die
 	done
-	# The 128x128 icon has a different name
-	insinto /usr/share/icons/hicolor/128x128/apps
-	newins "${icon_path}/../../../icons/mozicon128.png" "${icon}.png" || die
 	# Install a 48x48 icon into /usr/share/pixmaps for legacy DEs
 	newicon "${S}"/browser/chrome/icons/default/default48.png ${PN}.png
 	domenu "${FILESDIR}"/${PN}.desktop
@@ -111,20 +116,23 @@ src_install() {
 	dodir ${MOZILLA_FIVE_HOME%/*}
 	mv "${S}" "${ED}"${MOZILLA_FIVE_HOME} || die
 
+	# Disable built-in auto-update because we update firefox-bin through package manager
+	insinto ${MOZILLA_FIVE_HOME}/distribution/
+	newins "${FILESDIR}"/disable-auto-update.policy.json policies.json
+
 	# Fix prefs that make no sense for a system-wide install
 	insinto ${MOZILLA_FIVE_HOME}/defaults/pref/
 	doins "${FILESDIR}"/local-settings.js
-	# Copy preferences file so we can do a simple rename.
-	cp "${FILESDIR}"/all-gentoo-1.js \
-		"${ED}"${MOZILLA_FIVE_HOME}/all-gentoo.js || die
+	insinto ${MOZILLA_FIVE_HOME}
+	newins "${FILESDIR}"/all-gentoo-1.js all-gentoo.js
 
 	# Install language packs
-	mozlinguas_src_install
+	MOZ_INSTALL_L10N_XPIFILE="1" mozlinguas_src_install
 
-	local LANG=${linguas%% *}
+	local LANG=${LINGUAS%% *}
 	if [[ -n ${LANG} && ${LANG} != "en" ]]; then
 		elog "Setting default locale to ${LANG}"
-		echo "pref(\"general.useragent.locale\", \"${LANG}\");" \
+		echo "pref(\"intl.locale.requested\", \"${LANG}\");" \
 			>> "${ED}${MOZILLA_FIVE_HOME}"/defaults/pref/${PN}-prefs.js || \
 			die "sed failed to change locale"
 	fi
@@ -136,7 +144,7 @@ src_install() {
 	#!/bin/sh
 	unset LD_PRELOAD
 	LD_LIBRARY_PATH="${apulselib}/opt/firefox/" \\
-	GTK_PATH=/usr/lib/gtk-3.0/ \\
+	GTK_PATH=/usr/$(get_libdir)/gtk-3.0/ \\
 	exec /opt/${MOZ_PN}/${MOZ_PN} "\$@"
 	EOF
 	fperms 0755 /usr/bin/${PN}
