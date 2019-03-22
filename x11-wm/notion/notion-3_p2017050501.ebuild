@@ -1,6 +1,5 @@
 # Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Id$
 
 EAPI=5
 
@@ -18,11 +17,12 @@ IUSE="nls xinerama +xrandr"
 RDEPEND=">=dev-lang/lua-5.1:0=
 	x11-libs/libSM
 	x11-libs/libX11
+	x11-apps/xmessage
 	x11-libs/libXext
-	x11-libs/libXft
 	nls? ( sys-devel/gettext )
 	xinerama? ( x11-libs/libXinerama )
 	xrandr? ( x11-libs/libXrandr )"
+#xft? ( x11-libs/libXft )
 DEPEND="${RDEPEND}
 		virtual/pkgconfig"
 
@@ -35,14 +35,16 @@ RESTRICT=test
 S=${WORKDIR}/${P/_p/-}
 
 src_prepare() {
-	epatch "${FILESDIR}/${P}-pkg-config.patch"
-	
-	epatch "${FILESDIR}/0001-Add-optional-XFT-support.patch"
+#	if use xft ; then
+#		epatch "${FILESDIR}/${PN}-2017-xft.patch"
+#	fi
 
 	sed -e "/^CFLAGS/{s: =: +=: ; s:-Os:: ; s:-g::}" \
 		-e "/^LDFLAGS/{s: =: +=: ; s:-Wl,--as-needed::}" \
 		-i system-autodetect.mk || die
 	echo > build/lua-detect.mk
+
+	epatch_user
 }
 
 src_configure() {
@@ -62,6 +64,7 @@ src_configure() {
 		echo "LUAC=\$(BINDIR)/luac"
 		echo "LUA_LIBS=\$(shell pkg-config --libs lua)"
 		echo "LUA_INCLUDES=\$(shell pkg-config --cflags)"
+#		! use xft || echo "USE_XFT=1"
 		use nls || echo "DEFINES+=-DCF_NO_LOCALE -DCF_NO_GETTEXT"
 	} > system-local.mk
 
