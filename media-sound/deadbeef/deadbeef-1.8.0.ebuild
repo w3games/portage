@@ -141,10 +141,10 @@ src_prepare() {
 	# 	rm -v "${S}/translation/help.pt_BR.txt" || die
 	# fi
 
-	# if ! use_if_iuse linguas_ru && use_if_iuse linguas_pt_BR ; then
-	# 	eapply "${FILESDIR}/${PN}-0.7.2-remove-ru-help-translation.patch"
-	# 	rm -v "${S}/translation/help.ru.txt" || die
-	# fi
+	if ! use_if_iuse linguas_ru && use_if_iuse linguas_pt_BR ; then
+		eapply "${FILESDIR}/${PN}-9999-remove-ru-help-translation.patch"
+		rm -v "${S}/translation/help.ru.txt" || die
+	fi
 
 	# if ! use_if_iuse linguas_pt_BR && ! use_if_iuse linguas_ru ; then
 	# 	eapply "${FILESDIR}/${PN}-0.7.2-remove-pt_br-and-ru-help-translation.patch"
@@ -157,10 +157,10 @@ src_prepare() {
 			-i "${S}/plugins/wildmidi/wildmidiplug.c" || die
 	fi
 
-	# if ! use unity ; then
-	# 	# remove unity trash
-	# 	eapply "${FILESDIR}/${PN}-0.7.2-remove-unity-trash.patch"
-	# fi
+	if ! use unity ; then
+		# remove unity trash
+		eapply "${FILESDIR}/${PN}-9999-remove-unity-trash.patch"
+	fi
 
 	if use arm ; then
 		eapply "${FILESDIR}/gcc-8/394536bd135dd5f9fac211c391ce2e1a04bda6da.patch"
