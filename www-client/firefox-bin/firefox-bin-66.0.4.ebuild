@@ -6,7 +6,7 @@ MOZ_ESR=0
 
 # Can be updated using scripts/get_langs.sh from mozilla overlay
 # Missing when bumped : be
-MOZ_LANGS=( en-US ja )
+MOZ_LANGS=( en-US )
 # ach af an ar as ast az bg bn-BD bn-IN br bs ca cs cy da de
 # el en en-GB en-US en-ZA eo es-AR es-CL es-ES es-MX et eu fa fi fr fy-NL
 # ga-IE gd gl gu-IN he hi-IN hr hsb hu hy-AM id is it ja kk km kn ko lt
