@@ -48,12 +48,17 @@ DEPEND="
 	gnome-base/librsvg
 	x11-base/xorg-proto
 	truetype? ( >=media-libs/freetype-2.0.9 )
+	app-arch/lzip
 "
 
 BDEPEND="
 	app-text/asciidoc
 	nls? ( >=sys-devel/gettext-0.19.6 )
 "
+
+src_unpack() {
+	tar --lzip -xpf "${DISTDIR}"/"${A}" || die
+}
 
 src_prepare() {
 	# Fix bug #486710 - TODO: Still needed?
