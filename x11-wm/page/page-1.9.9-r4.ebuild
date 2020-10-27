@@ -28,6 +28,8 @@ DEPEND="${RDEPEND}
 	>=x11-base/xcb-proto-1.12-r2
 	x11-base/xorg-proto"
 
+S="${WORKDIR}/${PF}"
+
 src_install() {
 	default
 
